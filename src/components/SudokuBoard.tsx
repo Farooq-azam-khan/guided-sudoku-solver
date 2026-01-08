@@ -8,8 +8,17 @@ import {
   getPossibleMoves,
   BLANK,
   type Board,
+  type Difficulty,
 } from "@/lib/sudoku";
 import { cn } from "@/lib/utils";
+
+const DIFFICULTIES: Difficulty[] = [
+  "easy",
+  "medium",
+  "hard",
+  "expert",
+  "master",
+];
 
 export function SudokuBoard() {
   const [board, setBoard] = React.useState<Board>(getEmptyBoard());
@@ -21,9 +30,11 @@ export function SudokuBoard() {
   const [status, setStatus] = React.useState<
     "playing" | "solved" | "unsolvable"
   >("playing");
+  const [selectedDifficulty, setSelectedDifficulty] =
+    React.useState<Difficulty>("medium");
 
-  const handleNewGame = () => {
-    const newBoard = generateSudoku("medium");
+  const handleNewGame = (difficulty: Difficulty = selectedDifficulty) => {
+    const newBoard = generateSudoku(difficulty);
     setBoard(newBoard.map((row) => [...row]));
     setInitialBoard(newBoard.map((row) => [...row]));
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
@@ -106,6 +117,20 @@ export function SudokuBoard() {
         </h1>
       </div>
 
+      <div className="flex flex-wrap gap-2 justify-center">
+        {DIFFICULTIES.map((diff) => (
+          <Button
+            key={diff}
+            variant={selectedDifficulty === diff ? "default" : "neutral"}
+            size="sm"
+            onClick={() => setSelectedDifficulty(diff)}
+            className="capitalize"
+          >
+            {diff}
+          </Button>
+        ))}
+      </div>
+
       <div className="bg-white border-4 border-black p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="grid grid-cols-9 bg-black gap-[2px] border-2 border-black">
           {board.map((row, rowIndex) =>
@@ -171,8 +196,13 @@ export function SudokuBoard() {
       </div>
 
       <div className="flex flex-wrap gap-4 justify-center w-full">
-        <Button onClick={handleNewGame} variant="default" size="lg">
-          New Game
+        <Button
+          onClick={() => handleNewGame()}
+          variant="default"
+          size="lg"
+          className="min-w-[150px]"
+        >
+          New {selectedDifficulty} Game
         </Button>
         <Button onClick={handleFillNotes} variant="neutral" size="lg">
           Fill Notes

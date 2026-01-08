@@ -67,7 +67,7 @@ export function solveSudoku(board: Board): Board | false {
 
 export type Difficulty = "easy" | "medium" | "hard" | "expert" | "master";
 
-export function generateSudoku(difficulty: Difficulty = "medium"): Board {
+export function generateSudoku(difficulty: Difficulty = "medium"): { puzzle: Board; solution: Board } {
   // Start with empty board
   const board = getEmptyBoard();
 
@@ -78,11 +78,12 @@ export function generateSudoku(difficulty: Difficulty = "medium"): Board {
 
   // Solve the board to get a valid full solution
   solveSudokuInPlace(board);
+  const solution = board.map(row => [...row]);
 
   // Remove elements to create puzzle
   removeDigits(board, difficulty);
 
-  return board;
+  return { puzzle: board, solution };
 }
 
 function fillBox(board: Board, row: number, col: number) {
