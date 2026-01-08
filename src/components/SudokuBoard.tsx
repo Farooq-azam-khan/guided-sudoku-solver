@@ -6,9 +6,11 @@ import {
   solveSudoku,
   getEmptyBoard,
   getPossibleMoves,
+  getHint,
   BLANK,
   type Board,
   type Difficulty,
+  type Hint,
 } from "@/lib/sudoku";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,7 @@ export function SudokuBoard() {
   const [validation, setValidation] = React.useState<
     ("correct" | "incorrect" | null)[][]
   >(Array.from({ length: 9 }, () => Array(9).fill(null)));
+  const [hint, setHint] = React.useState<Hint | null>(null);
 
   const [status, setStatus] = React.useState<
     "playing" | "solved" | "unsolvable"
@@ -45,6 +48,7 @@ export function SudokuBoard() {
     setSolutionBoard(solution);
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
     setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
+    setHint(null);
     setStatus("playing");
   };
 
@@ -57,6 +61,7 @@ export function SudokuBoard() {
       setStatus("solved");
       setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
       setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
+      setHint(null);
     } else {
       setStatus("unsolvable");
       alert("No solution found for this board configuration!");
@@ -93,10 +98,20 @@ export function SudokuBoard() {
     setValidation(newValidation);
   };
 
+  const handleGetHint = () => {
+    const nextHint = getHint(board);
+    if (nextHint) {
+      setHint(nextHint);
+    } else {
+      alert("No obvious hint found! You might need advanced techniques or the board is full.");
+    }
+  };
+
   const handleClear = () => {
     setBoard(initialBoard.map((row) => [...row]));
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
     setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
+    setHint(null);
     setStatus("playing");
   };
 
@@ -107,6 +122,7 @@ export function SudokuBoard() {
     setSolutionBoard(null);
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
     setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
+    setHint(null);
     setStatus("playing");
   };
 
@@ -149,6 +165,9 @@ export function SudokuBoard() {
     newValidation[row] = [...newValidation[row]];
     newValidation[row][col] = null;
     setValidation(newValidation);
+
+    // Clear hint if we touched the hint cell or any cell (to keep state fresh)
+    setHint(null);
   };
 
   // Initialize on mount
@@ -201,6 +220,9 @@ export function SudokuBoard() {
               <Button onClick={handleCheck} variant="neutral" size="lg" className="w-full">
                 Check Puzzle
               </Button>
+              <Button onClick={handleGetHint} variant="neutral" size="lg" className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300">
+                Get Hint
+              </Button>
               <Button onClick={handleFillNotes} variant="neutral" size="lg" className="w-full">
                 Fill Notes
               </Button>
@@ -221,7 +243,14 @@ export function SudokuBoard() {
       </div>
 
       {/* Main Board Area */}
-      <div className="flex-1 w-full max-w-2xl order-1 lg:order-2">
+      <div className="flex-1 w-full max-w-2xl order-1 lg:order-2 flex flex-col gap-4">
+        {hint && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-700 animate-in fade-in slide-in-from-top-2">
+            <p className="font-bold">Hint Available:</p>
+            <p>{hint.explanation}</p>
+          </div>
+        )}
+
         <div className="bg-white border-4 border-black p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div className="grid grid-cols-9 bg-black gap-[2px] border-2 border-black">
             {board.map((row, rowIndex) =>
@@ -231,6 +260,7 @@ export function SudokuBoard() {
                   initialBoard[rowIndex][colIndex] !== null;
                 const cellNotes = notes[rowIndex][colIndex];
                 const cellValidation = validation[rowIndex][colIndex];
+                const isHintCell = hint?.row === rowIndex && hint?.col === colIndex;
 
                 const isRightBorder = (colIndex + 1) % 3 === 0 && colIndex !== 8;
                 const isBottomBorder = (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
@@ -274,6 +304,7 @@ export function SudokuBoard() {
                           "text-transparent", // Hide cursor/text if needed, but actually we want input visible
                         cellValidation === "correct" && "bg-green-100 text-green-700",
                         cellValidation === "incorrect" && "bg-red-100 text-red-700",
+                        isHintCell && !cell && "bg-blue-100 ring-inset ring-4 ring-blue-400 animate-pulse"
                       )}
                     />
                   </div>
