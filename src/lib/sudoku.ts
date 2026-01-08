@@ -6,7 +6,7 @@ export function getEmptyBoard(): Board {
   return Array.from({ length: 9 }, () => Array(9).fill(BLANK));
 }
 
-function isValid(board: Board, row: number, col: number, num: number): boolean {
+export function isValid(board: Board, row: number, col: number, num: number): boolean {
   // Check row
   for (let x = 0; x < 9; x++) {
     if (board[row][x] === num) return false;
@@ -28,6 +28,16 @@ function isValid(board: Board, row: number, col: number, num: number): boolean {
   }
 
   return true;
+}
+
+export function getPossibleMoves(board: Board, row: number, col: number): number[] {
+  const moves: number[] = [];
+  for (let num = 1; num <= 9; num++) {
+    if (isValid(board, row, col, num)) {
+      moves.push(num);
+    }
+  }
+  return moves;
 }
 
 export function solveSudoku(board: Board): Board | false {
