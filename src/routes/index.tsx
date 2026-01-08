@@ -1,15 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Zap,
-  Server,
-  Route as RouteIcon,
-  Shield,
-  Waves,
-  Sparkles,
-} from "lucide-react";
+import { SudokuBoard } from "@/components/SudokuBoard";
 
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
-  return <div></div>;
+  return (
+    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
+      <SudokuBoard />
+    </div>
+  );
 }
