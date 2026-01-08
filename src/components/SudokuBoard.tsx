@@ -1,4 +1,5 @@
 import * as React from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -64,7 +65,9 @@ export function SudokuBoard() {
       setHint(null);
     } else {
       setStatus("unsolvable");
-      alert("No solution found for this board configuration!");
+      toast.error("Unsolvable", {
+        description: "No solution found for this board configuration!",
+      });
     }
   };
 
@@ -73,7 +76,9 @@ export function SudokuBoard() {
       // If no solution is stored (e.g. custom game), try to solve it now to check
       const currentSolution = solveSudoku(initialBoard);
       if (!currentSolution) {
-        alert("This puzzle seems unsolvable!");
+        toast.error("Unsolvable", {
+          description: "This puzzle seems unsolvable!",
+        });
         return;
       }
       // Use this solution for checking
@@ -102,8 +107,14 @@ export function SudokuBoard() {
     const nextHint = getHint(board);
     if (nextHint) {
       setHint(nextHint);
+      toast("Hint Available", {
+        description: nextHint.explanation,
+      });
     } else {
-      alert("No obvious hint found! You might need advanced techniques or the board is full.");
+      toast.info("No Hint Found", {
+        description:
+          "No obvious hint found! You might need advanced techniques or the board is full.",
+      });
     }
   };
 
@@ -244,13 +255,6 @@ export function SudokuBoard() {
 
       {/* Main Board Area */}
       <div className="flex-1 w-full max-w-2xl order-1 lg:order-2 flex flex-col gap-4">
-        {hint && (
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 text-blue-700 animate-in fade-in slide-in-from-top-2">
-            <p className="font-bold">Hint Available:</p>
-            <p>{hint.explanation}</p>
-          </div>
-        )}
-
         <div className="bg-white border-4 border-black p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div className="grid grid-cols-9 bg-black gap-[2px] border-2 border-black">
             {board.map((row, rowIndex) =>
