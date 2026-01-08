@@ -24,9 +24,14 @@ export function SudokuBoard() {
   const [board, setBoard] = React.useState<Board>(getEmptyBoard());
   const [initialBoard, setInitialBoard] =
     React.useState<Board>(getEmptyBoard());
+  const [solutionBoard, setSolutionBoard] = React.useState<Board | null>(null);
   const [notes, setNotes] = React.useState<number[][][]>(
     Array.from({ length: 9 }, () => Array(9).fill([])),
   );
+  const [validation, setValidation] = React.useState<
+    ("correct" | "incorrect" | null)[][]
+  >(Array.from({ length: 9 }, () => Array(9).fill(null)));
+
   const [status, setStatus] = React.useState<
     "playing" | "solved" | "unsolvable"
   >("playing");
@@ -34,10 +39,12 @@ export function SudokuBoard() {
     React.useState<Difficulty>("medium");
 
   const handleNewGame = (difficulty: Difficulty = selectedDifficulty) => {
-    const newBoard = generateSudoku(difficulty);
-    setBoard(newBoard.map((row) => [...row]));
-    setInitialBoard(newBoard.map((row) => [...row]));
+    const { puzzle, solution } = generateSudoku(difficulty);
+    setBoard(puzzle.map((row) => [...row]));
+    setInitialBoard(puzzle.map((row) => [...row]));
+    setSolutionBoard(solution);
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
+    setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     setStatus("playing");
   };
 
@@ -49,15 +56,47 @@ export function SudokuBoard() {
       setBoard(solution);
       setStatus("solved");
       setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
+      setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     } else {
       setStatus("unsolvable");
       alert("No solution found for this board configuration!");
     }
   };
 
+  const handleCheck = () => {
+    if (!solutionBoard) {
+      // If no solution is stored (e.g. custom game), try to solve it now to check
+      const currentSolution = solveSudoku(initialBoard);
+      if (!currentSolution) {
+        alert("This puzzle seems unsolvable!");
+        return;
+      }
+      // Use this solution for checking
+      const newValidation = board.map((row, rIdx) =>
+        row.map((cell, cIdx) => {
+          if (initialBoard[rIdx][cIdx] !== BLANK) return null; // Don't validate initial cells
+          if (cell === BLANK) return null; // Don't validate empty cells
+          return cell === currentSolution[rIdx][cIdx] ? "correct" : "incorrect";
+        }),
+      );
+      setValidation(newValidation);
+      return;
+    }
+
+    const newValidation = board.map((row, rIdx) =>
+      row.map((cell, cIdx) => {
+        if (initialBoard[rIdx][cIdx] !== BLANK) return null; // Don't validate initial cells
+        if (cell === BLANK) return null; // Don't validate empty cells
+        return cell === solutionBoard[rIdx][cIdx] ? "correct" : "incorrect";
+      }),
+    );
+    setValidation(newValidation);
+  };
+
   const handleClear = () => {
     setBoard(initialBoard.map((row) => [...row]));
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
+    setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     setStatus("playing");
   };
 
@@ -65,7 +104,9 @@ export function SudokuBoard() {
     const empty = getEmptyBoard();
     setBoard(empty);
     setInitialBoard(empty);
+    setSolutionBoard(null);
     setNotes(Array.from({ length: 9 }, () => Array(9).fill([])));
+    setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     setStatus("playing");
   };
 
@@ -102,6 +143,12 @@ export function SudokuBoard() {
     newNotes[row] = [...newNotes[row]];
     newNotes[row][col] = [];
     setNotes(newNotes);
+
+    // Clear validation for this cell
+    const newValidation = [...validation];
+    newValidation[row] = [...newValidation[row]];
+    newValidation[row][col] = null;
+    setValidation(newValidation);
   };
 
   // Initialize on mount
@@ -139,6 +186,7 @@ export function SudokuBoard() {
                 initialBoard[rowIndex][colIndex] !== BLANK &&
                 initialBoard[rowIndex][colIndex] !== null;
               const cellNotes = notes[rowIndex][colIndex];
+              const cellValidation = validation[rowIndex][colIndex];
 
               // Calculate borders for 3x3 grid visualization
               // We use thick borders on the right of cols 2 and 5, and bottom of rows 2 and 5.
@@ -186,6 +234,8 @@ export function SudokuBoard() {
                       cell === null &&
                         cellNotes.length > 0 &&
                         "text-transparent", // Hide cursor/text if needed, but actually we want input visible
+                      cellValidation === "correct" && "bg-green-100 text-green-700",
+                      cellValidation === "incorrect" && "bg-red-100 text-red-700",
                     )}
                   />
                 </div>
@@ -203,6 +253,9 @@ export function SudokuBoard() {
           className="min-w-[150px]"
         >
           New {selectedDifficulty} Game
+        </Button>
+        <Button onClick={handleCheck} variant="neutral" size="lg">
+            Check Puzzle
         </Button>
         <Button onClick={handleFillNotes} variant="neutral" size="lg">
           Fill Notes
