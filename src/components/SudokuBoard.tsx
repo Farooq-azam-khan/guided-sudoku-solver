@@ -157,118 +157,131 @@ export function SudokuBoard() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-8 p-4 w-full max-w-2xl mx-auto">
-      <div className="flex flex-col items-center gap-2">
-        <h1 className="text-4xl font-heading uppercase tracking-tighter">
-          Sudoku
-        </h1>
-      </div>
+    <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 p-4 w-full max-w-7xl mx-auto">
+      {/* Sidebar / Controls (Left on Desktop, Top on Mobile) */}
+      <div className="flex flex-col items-center lg:items-start gap-8 w-full lg:w-80 shrink-0 order-2 lg:order-1">
+        <div className="flex flex-col items-center lg:items-start gap-2">
+          <h1 className="text-4xl font-heading uppercase tracking-tighter text-center lg:text-left">
+            Sudoku
+          </h1>
+          <p className="text-sm text-gray-500 text-center lg:text-left">
+            Select a difficulty and start playing!
+          </p>
+        </div>
 
-      <div className="flex flex-wrap gap-2 justify-center">
-        {DIFFICULTIES.map((diff) => (
-          <Button
-            key={diff}
-            variant={selectedDifficulty === diff ? "default" : "neutral"}
-            size="sm"
-            onClick={() => setSelectedDifficulty(diff)}
-            className="capitalize"
-          >
-            {diff}
-          </Button>
-        ))}
-      </div>
-
-      <div className="bg-white border-4 border-black p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <div className="grid grid-cols-9 bg-black gap-[2px] border-2 border-black">
-          {board.map((row, rowIndex) =>
-            row.map((cell, colIndex) => {
-              const isInitial =
-                initialBoard[rowIndex][colIndex] !== BLANK &&
-                initialBoard[rowIndex][colIndex] !== null;
-              const cellNotes = notes[rowIndex][colIndex];
-              const cellValidation = validation[rowIndex][colIndex];
-
-              // Calculate borders for 3x3 grid visualization
-              // We use thick borders on the right of cols 2 and 5, and bottom of rows 2 and 5.
-              // However, since we are using gap for grid lines, we might not need extra borders if the gap handles it.
-              // Let's rely on standard borders but maybe emphasize the 3x3 blocks.
-
-              // Actually, a common trick is to use different border widths.
-              const isRightBorder = (colIndex + 1) % 3 === 0 && colIndex !== 8;
-              const isBottomBorder = (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
-
-              return (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className={cn(
-                    "relative w-full aspect-square bg-white",
-                    isRightBorder && "border-r-4 border-black",
-                    isBottomBorder && "border-b-4 border-black",
-                  )}
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-bold">Difficulty</h2>
+            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+              {DIFFICULTIES.map((diff) => (
+                <Button
+                  key={diff}
+                  variant={selectedDifficulty === diff ? "default" : "neutral"}
+                  size="sm"
+                  onClick={() => setSelectedDifficulty(diff)}
+                  className="capitalize flex-1 min-w-[80px]"
                 >
-                  {cell === null && cellNotes.length > 0 && (
-                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none p-0.5 z-0">
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                        <div
-                          key={n}
-                          className="flex items-center justify-center text-[8px] sm:text-[10px] leading-none text-gray-500 font-bold font-mono"
-                        >
-                          {cellNotes.includes(n) ? n : ""}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={cell ?? ""}
-                    onChange={(e) =>
-                      handleCellChange(rowIndex, colIndex, e.target.value)
-                    }
-                    disabled={isInitial}
-                    className={cn(
-                      "relative z-10 w-full h-full text-center text-xl font-bold bg-transparent border-none focus:outline-hidden focus:bg-yellow-200 transition-colors p-0",
-                      isInitial ? "text-black" : "text-blue-600",
-                      !isInitial && "cursor-pointer hover:bg-black/5",
-                      cell === null &&
-                        cellNotes.length > 0 &&
-                        "text-transparent", // Hide cursor/text if needed, but actually we want input visible
-                      cellValidation === "correct" && "bg-green-100 text-green-700",
-                      cellValidation === "incorrect" && "bg-red-100 text-red-700",
-                    )}
-                  />
-                </div>
-              );
-            }),
-          )}
+                  {diff}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-bold">Actions</h2>
+            <div className="flex flex-col gap-2 w-full">
+              <Button
+                onClick={() => handleNewGame()}
+                variant="default"
+                size="lg"
+                className="w-full"
+              >
+                New {selectedDifficulty} Game
+              </Button>
+              <Button onClick={handleCheck} variant="neutral" size="lg" className="w-full">
+                Check Puzzle
+              </Button>
+              <Button onClick={handleFillNotes} variant="neutral" size="lg" className="w-full">
+                Fill Notes
+              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button onClick={handleClear} variant="neutral" size="lg" className="w-full">
+                  Reset
+                </Button>
+                <Button onClick={handleResetEmpty} variant="neutral" size="lg" className="w-full">
+                  Clear All
+                </Button>
+              </div>
+              <Button onClick={handleSolve} variant="reverse" size="lg" className="w-full mt-2">
+                Solve Board
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 justify-center w-full">
-        <Button
-          onClick={() => handleNewGame()}
-          variant="default"
-          size="lg"
-          className="min-w-[150px]"
-        >
-          New {selectedDifficulty} Game
-        </Button>
-        <Button onClick={handleCheck} variant="neutral" size="lg">
-            Check Puzzle
-        </Button>
-        <Button onClick={handleFillNotes} variant="neutral" size="lg">
-          Fill Notes
-        </Button>
-        <Button onClick={handleSolve} variant="reverse" size="lg">
-          Solve!
-        </Button>
-        <Button onClick={handleClear} variant="neutral" size="lg">
-          Reset Board
-        </Button>
-        <Button onClick={handleResetEmpty} variant="neutral" size="lg">
-          Clear All
-        </Button>
+      {/* Main Board Area */}
+      <div className="flex-1 w-full max-w-2xl order-1 lg:order-2">
+        <div className="bg-white border-4 border-black p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="grid grid-cols-9 bg-black gap-[2px] border-2 border-black">
+            {board.map((row, rowIndex) =>
+              row.map((cell, colIndex) => {
+                const isInitial =
+                  initialBoard[rowIndex][colIndex] !== BLANK &&
+                  initialBoard[rowIndex][colIndex] !== null;
+                const cellNotes = notes[rowIndex][colIndex];
+                const cellValidation = validation[rowIndex][colIndex];
+
+                const isRightBorder = (colIndex + 1) % 3 === 0 && colIndex !== 8;
+                const isBottomBorder = (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
+
+                return (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className={cn(
+                      "relative w-full aspect-square bg-white",
+                      isRightBorder && "border-r-4 border-black",
+                      isBottomBorder && "border-b-4 border-black",
+                    )}
+                  >
+                    {cell === null && cellNotes.length > 0 && (
+                      <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none p-0.5 z-0">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                          <div
+                            key={n}
+                            className="flex items-center justify-center text-[8px] sm:text-[10px] leading-none text-gray-500 font-bold font-mono"
+                          >
+                            {cellNotes.includes(n) ? n : ""}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={cell ?? ""}
+                      onChange={(e) =>
+                        handleCellChange(rowIndex, colIndex, e.target.value)
+                      }
+                      disabled={isInitial}
+                      className={cn(
+                        "relative z-10 w-full h-full text-center text-xl font-bold bg-transparent border-none focus:outline-hidden focus:bg-yellow-200 transition-colors p-0",
+                        isInitial ? "text-black" : "text-blue-600",
+                        !isInitial && "cursor-pointer hover:bg-black/5",
+                        cell === null &&
+                          cellNotes.length > 0 &&
+                          "text-transparent", // Hide cursor/text if needed, but actually we want input visible
+                        cellValidation === "correct" && "bg-green-100 text-green-700",
+                        cellValidation === "incorrect" && "bg-red-100 text-red-700",
+                      )}
+                    />
+                  </div>
+                );
+              }),
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
