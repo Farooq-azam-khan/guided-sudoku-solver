@@ -67,6 +67,97 @@ export function solveSudoku(board: Board): Board | false {
 
 export type Difficulty = "easy" | "medium" | "hard" | "expert" | "master";
 
+export type Hint = {
+  row: number;
+  col: number;
+  value: number;
+  explanation: string;
+};
+
+export function getHint(board: Board): Hint | null {
+  // 1. Look for Naked Singles (cells with only one possible candidate)
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      if (board[r][c] === BLANK) {
+        const moves = getPossibleMoves(board, r, c);
+        if (moves.length === 1) {
+          return {
+            row: r,
+            col: c,
+            value: moves[0],
+            explanation: `Cell (${r + 1}, ${c + 1}) can only be ${moves[0]} (Naked Single).`,
+          };
+        }
+      }
+    }
+  }
+
+  // 2. Look for Hidden Singles (a number can only go in one spot in a unit)
+  for (let num = 1; num <= 9; num++) {
+    // Check Rows
+    for (let r = 0; r < 9; r++) {
+      const positions = [];
+      for (let c = 0; c < 9; c++) {
+        if (board[r][c] === BLANK && isValid(board, r, c, num)) {
+          positions.push(c);
+        }
+      }
+      if (positions.length === 1) {
+        return {
+          row: r,
+          col: positions[0],
+          value: num,
+          explanation: `In row ${r + 1}, the number ${num} can only go in cell (${r + 1}, ${positions[0] + 1}) (Hidden Single).`,
+        };
+      }
+    }
+
+    // Check Columns
+    for (let c = 0; c < 9; c++) {
+      const positions = [];
+      for (let r = 0; r < 9; r++) {
+        if (board[r][c] === BLANK && isValid(board, r, c, num)) {
+          positions.push(r);
+        }
+      }
+      if (positions.length === 1) {
+        return {
+          row: positions[0],
+          col: c,
+          value: num,
+          explanation: `In column ${c + 1}, the number ${num} can only go in cell (${positions[0] + 1}, ${c + 1}) (Hidden Single).`,
+        };
+      }
+    }
+
+    // Check Boxes
+    for (let boxRow = 0; boxRow < 3; boxRow++) {
+      for (let boxCol = 0; boxCol < 3; boxCol++) {
+        const positions = [];
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            const r = boxRow * 3 + i;
+            const c = boxCol * 3 + j;
+            if (board[r][c] === BLANK && isValid(board, r, c, num)) {
+              positions.push({ r, c });
+            }
+          }
+        }
+        if (positions.length === 1) {
+          return {
+            row: positions[0].r,
+            col: positions[0].c,
+            value: num,
+            explanation: `In the 3x3 box at (${boxRow * 3 + 1}, ${boxCol * 3 + 1}), the number ${num} can only go in cell (${positions[0].r + 1}, ${positions[0].c + 1}) (Hidden Single).`,
+          };
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 export function generateSudoku(difficulty: Difficulty = "medium"): { puzzle: Board; solution: Board } {
   // Start with empty board
   const board = getEmptyBoard();
