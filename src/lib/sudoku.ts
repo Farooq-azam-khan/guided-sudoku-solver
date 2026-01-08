@@ -65,7 +65,9 @@ export function solveSudoku(board: Board): Board | false {
   return false;
 }
 
-export function generateSudoku(difficulty: 'easy' | 'medium' | 'hard' = 'medium'): Board {
+export type Difficulty = "easy" | "medium" | "hard" | "expert" | "master";
+
+export function generateSudoku(difficulty: Difficulty = "medium"): Board {
   // Start with empty board
   const board = getEmptyBoard();
 
@@ -122,8 +124,16 @@ function solveSudokuInPlace(board: Board): boolean {
   return true;
 }
 
-function removeDigits(board: Board, difficulty: string) {
-  let attempts = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 40 : 50;
+function removeDigits(board: Board, difficulty: Difficulty) {
+  const attemptsMap: Record<Difficulty, number> = {
+    easy: 35,
+    medium: 45,
+    hard: 52,
+    expert: 58,
+    master: 64,
+  };
+
+  let attempts = attemptsMap[difficulty];
   while (attempts > 0) {
     let row = Math.floor(Math.random() * 9);
     let col = Math.floor(Math.random() * 9);
