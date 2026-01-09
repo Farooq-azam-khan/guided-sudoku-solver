@@ -381,19 +381,26 @@ export function SudokuBoard() {
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-bold">Difficulty</h2>
-            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-              {DIFFICULTIES.map((diff) => (
-                <Button
-                  key={diff}
-                  variant={selectedDifficulty === diff ? "default" : "neutral"}
-                  size="sm"
-                  onClick={() => setSelectedDifficulty(diff)}
-                  className="capitalize flex-1 min-w-20"
-                >
-                  {diff}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="neutral" size="lg" className="w-full capitalize">
+                  {selectedDifficulty} <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
-              ))}
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Select Difficulty</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {DIFFICULTIES.map((diff) => (
+                  <DropdownMenuItem
+                    key={diff}
+                    onClick={() => setSelectedDifficulty(diff)}
+                    className="capitalize"
+                  >
+                    {diff}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="flex flex-col gap-2">
