@@ -336,7 +336,7 @@ export function SudokuBoard() {
   }, [selectedCell, handleNumberSelect]);
 
   return (
-    <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 p-4 w-full max-w-7xl mx-auto">
+    <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-4 sm:gap-8 p-2 sm:p-4 w-full max-w-7xl mx-auto">
       {/* Completion Modal */}
       <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
         <DialogContent className="sm:max-w-md">
@@ -378,98 +378,89 @@ export function SudokuBoard() {
           Sudoku
         </h1>
 
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-bold">Difficulty</h2>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="neutral" size="lg" className="w-full capitalize">
-                  {selectedDifficulty} <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Select Difficulty</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {DIFFICULTIES.map((diff) => (
-                  <DropdownMenuItem
-                    key={diff}
-                    onClick={() => setSelectedDifficulty(diff)}
-                    className="capitalize"
-                  >
-                    {diff}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-bold">Mode</h2>
-            <Button
-              onClick={() => setNoteMode(!noteMode)}
-              variant={noteMode ? "default" : "neutral"}
-              size="lg"
-              className="w-full"
-            >
-              {noteMode ? "📝 Note Mode ON" : "✏️ Fill Mode"}
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-bold">Actions</h2>
-            <div className="flex flex-col gap-2 w-full">
-              <Button
-                onClick={() => handleNewGame()}
-                variant="default"
-                size="lg"
-                className="w-full"
-              >
-                New {selectedDifficulty} Game
+        <div className="grid grid-cols-2 gap-4 w-full">
+          {/* Row 1: Difficulty & New Game */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="neutral" size="lg" className="w-full capitalize">
+                {selectedDifficulty} <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Select Difficulty</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {DIFFICULTIES.map((diff) => (
+                <DropdownMenuItem
+                  key={diff}
+                  onClick={() => setSelectedDifficulty(diff)}
+                  className="capitalize"
+                >
+                  {diff}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="neutral" size="lg" className="w-full">
-                    Game Actions <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>Game Assistance</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={handleCheck}>
-                    Check Puzzle
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleGetHint}>
-                    Get Hint
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleFillNotes}>
-                    Fill Notes
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Board Control</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={handleClear}>
-                    Reset Current Game
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleResetEmpty}>
-                    Clear Board (Empty)
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleSolve}
-                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                  >
-                    Solve Board
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          <Button
+            onClick={() => handleNewGame()}
+            variant="default"
+            size="lg"
+            className="w-full"
+          >
+            New Game
+          </Button>
+
+          {/* Row 2: Mode & Actions */}
+          <Button
+            onClick={() => setNoteMode(!noteMode)}
+            variant={noteMode ? "default" : "neutral"}
+            size="lg"
+            className="w-full"
+          >
+            {noteMode ? "📝 Notes" : "✏️ Fill"}
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="neutral" size="lg" className="w-full">
+                Actions <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Game Assistance</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleCheck}>
+                Check Puzzle
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleGetHint}>
+                Get Hint
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleFillNotes}>
+                Fill Notes
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Board Control</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleClear}>
+                Reset Current Game
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleResetEmpty}>
+                Clear Board (Empty)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleSolve}
+                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+              >
+                Solve Board
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Main Board Area */}
-      <div className="flex-1 w-full max-w-2xl order-1 lg:order-2 flex flex-col gap-4">
-        <div className="bg-white border-4 border-black p-1 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <div className="grid grid-cols-9 bg-black gap-[2px] border-2 border-black">
+      <div className="flex-1 w-full max-w-2xl order-1 lg:order-2 flex flex-col gap-2 sm:gap-4">
+        <div className="bg-white border-2 sm:border-4 border-black p-0.5 sm:p-1 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="grid grid-cols-9 bg-black gap-[1px] sm:gap-[2px] border border-black">
             {board.map((row, rowIndex) =>
               row.map((cell, colIndex) => {
                 const isInitial =
@@ -499,8 +490,8 @@ export function SudokuBoard() {
                     className={cn(
                       "relative w-full aspect-square cursor-pointer",
                       isInitial ? "bg-gray-100" : "bg-white",
-                      isRightBorder && "border-r-4 border-black",
-                      isBottomBorder && "border-b-4 border-black",
+                      isRightBorder && "border-r-2 sm:border-r-4 border-black",
+                      isBottomBorder && "border-b-2 sm:border-b-4 border-black",
                       isHighlighted && !isSelected && "bg-blue-50",
                       isSelected &&
                         "bg-yellow-200 ring-4 ring-yellow-400 ring-inset",
@@ -542,7 +533,7 @@ export function SudokuBoard() {
         </div>
 
         {/* Number Pad */}
-        <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="bg-white border-2 sm:border-4 border-black p-2 sm:p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div className="grid grid-cols-5 gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
               const isCompleted = numberCounts[num] >= 9;
