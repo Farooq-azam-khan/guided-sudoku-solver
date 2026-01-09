@@ -1,7 +1,6 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   generateSudoku,
   solveSudoku,
@@ -228,24 +227,54 @@ export function SudokuBoard() {
               >
                 New {selectedDifficulty} Game
               </Button>
-              <Button onClick={handleCheck} variant="neutral" size="lg" className="w-full">
+              <Button
+                onClick={handleCheck}
+                variant="neutral"
+                size="lg"
+                className="w-full"
+              >
                 Check Puzzle
               </Button>
-              <Button onClick={handleGetHint} variant="neutral" size="lg" className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300">
+              <Button
+                onClick={handleGetHint}
+                variant="neutral"
+                size="lg"
+                className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300"
+              >
                 Get Hint
               </Button>
-              <Button onClick={handleFillNotes} variant="neutral" size="lg" className="w-full">
+              <Button
+                onClick={handleFillNotes}
+                variant="neutral"
+                size="lg"
+                className="w-full"
+              >
                 Fill Notes
               </Button>
               <div className="grid grid-cols-2 gap-2">
-                <Button onClick={handleClear} variant="neutral" size="lg" className="w-full">
+                <Button
+                  onClick={handleClear}
+                  variant="neutral"
+                  size="lg"
+                  className="w-full"
+                >
                   Reset
                 </Button>
-                <Button onClick={handleResetEmpty} variant="neutral" size="lg" className="w-full">
+                <Button
+                  onClick={handleResetEmpty}
+                  variant="neutral"
+                  size="lg"
+                  className="w-full"
+                >
                   Clear All
                 </Button>
               </div>
-              <Button onClick={handleSolve} variant="reverse" size="lg" className="w-full mt-2">
+              <Button
+                onClick={handleSolve}
+                variant="reverse"
+                size="lg"
+                className="w-full mt-2"
+              >
                 Solve Board
               </Button>
             </div>
@@ -264,10 +293,13 @@ export function SudokuBoard() {
                   initialBoard[rowIndex][colIndex] !== null;
                 const cellNotes = notes[rowIndex][colIndex];
                 const cellValidation = validation[rowIndex][colIndex];
-                const isHintCell = hint?.row === rowIndex && hint?.col === colIndex;
+                const isHintCell =
+                  hint?.row === rowIndex && hint?.col === colIndex;
 
-                const isRightBorder = (colIndex + 1) % 3 === 0 && colIndex !== 8;
-                const isBottomBorder = (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
+                const isRightBorder =
+                  (colIndex + 1) % 3 === 0 && colIndex !== 8;
+                const isBottomBorder =
+                  (rowIndex + 1) % 3 === 0 && rowIndex !== 8;
 
                 return (
                   <div
@@ -306,9 +338,13 @@ export function SudokuBoard() {
                         cell === null &&
                           cellNotes.length > 0 &&
                           "text-transparent", // Hide cursor/text if needed, but actually we want input visible
-                        cellValidation === "correct" && "bg-green-100 text-green-700",
-                        cellValidation === "incorrect" && "bg-red-100 text-red-700",
-                        isHintCell && !cell && "bg-blue-100 ring-inset ring-4 ring-blue-400 animate-pulse"
+                        cellValidation === "correct" &&
+                          "bg-green-100 text-green-700",
+                        cellValidation === "incorrect" &&
+                          "bg-red-100 text-red-700",
+                        isHintCell &&
+                          !cell &&
+                          "bg-blue-100 ring-inset ring-4 ring-blue-400 animate-pulse",
                       )}
                     />
                   </div>
