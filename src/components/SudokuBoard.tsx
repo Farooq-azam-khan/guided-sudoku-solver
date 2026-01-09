@@ -361,7 +361,7 @@ export function SudokuBoard() {
                   variant={selectedDifficulty === diff ? "default" : "neutral"}
                   size="sm"
                   onClick={() => setSelectedDifficulty(diff)}
-                  className="capitalize flex-1 min-w-[80px]"
+                  className="capitalize flex-1 min-w-20"
                 >
                   {diff}
                 </Button>
