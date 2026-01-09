@@ -34,12 +34,19 @@ export function SudokuBoard() {
     ("correct" | "incorrect" | null)[][]
   >(Array.from({ length: 9 }, () => Array(9).fill(null)));
   const [hint, setHint] = React.useState<Hint | null>(null);
+  const [selectedCell, setSelectedCell] = React.useState<{
+    row: number;
+    col: number;
+  } | null>(null);
+  const [noteMode, setNoteMode] = React.useState(false);
+  const [showNumberPad, setShowNumberPad] = React.useState(false);
 
   const [status, setStatus] = React.useState<
     "playing" | "solved" | "unsolvable"
   >("playing");
   const [selectedDifficulty, setSelectedDifficulty] =
     React.useState<Difficulty>("medium");
+  const [showCompletionModal, setShowCompletionModal] = React.useState(false);
 
   const handleNewGame = (difficulty: Difficulty = selectedDifficulty) => {
     const { puzzle, solution } = generateSudoku(difficulty);
@@ -50,11 +57,11 @@ export function SudokuBoard() {
     setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     setHint(null);
     setStatus("playing");
+    setSelectedCell(null);
+    setShowCompletionModal(false);
   };
 
   const handleSolve = () => {
-    // Solve from the *current* state of the board, not just the initial one,
-    // to allow users to input their own puzzles.
     const solution = solveSudoku(board);
     if (solution) {
       setBoard(solution);
@@ -72,7 +79,6 @@ export function SudokuBoard() {
 
   const handleCheck = () => {
     if (!solutionBoard) {
-      // If no solution is stored (e.g. custom game), try to solve it now to check
       const currentSolution = solveSudoku(initialBoard);
       if (!currentSolution) {
         toast.error("Unsolvable", {
@@ -80,11 +86,10 @@ export function SudokuBoard() {
         });
         return;
       }
-      // Use this solution for checking
       const newValidation = board.map((row, rIdx) =>
         row.map((cell, cIdx) => {
-          if (initialBoard[rIdx][cIdx] !== BLANK) return null; // Don't validate initial cells
-          if (cell === BLANK) return null; // Don't validate empty cells
+          if (initialBoard[rIdx][cIdx] !== BLANK) return null;
+          if (cell === BLANK) return null;
           return cell === currentSolution[rIdx][cIdx] ? "correct" : "incorrect";
         }),
       );
@@ -94,8 +99,8 @@ export function SudokuBoard() {
 
     const newValidation = board.map((row, rIdx) =>
       row.map((cell, cIdx) => {
-        if (initialBoard[rIdx][cIdx] !== BLANK) return null; // Don't validate initial cells
-        if (cell === BLANK) return null; // Don't validate empty cells
+        if (initialBoard[rIdx][cIdx] !== BLANK) return null;
+        if (cell === BLANK) return null;
         return cell === solutionBoard[rIdx][cIdx] ? "correct" : "incorrect";
       }),
     );
@@ -123,6 +128,8 @@ export function SudokuBoard() {
     setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     setHint(null);
     setStatus("playing");
+    setSelectedCell(null);
+    setShowCompletionModal(false);
   };
 
   const handleResetEmpty = () => {
@@ -134,6 +141,8 @@ export function SudokuBoard() {
     setValidation(Array.from({ length: 9 }, () => Array(9).fill(null)));
     setHint(null);
     setStatus("playing");
+    setSelectedCell(null);
+    setShowCompletionModal(false);
   };
 
   const handleFillNotes = () => {
@@ -148,37 +157,132 @@ export function SudokuBoard() {
     setNotes(newNotes);
   };
 
-  const handleCellChange = (row: number, col: number, value: string) => {
-    // If it's a fixed initial cell, don't allow changing (unless it was empty initially)
+  const clearNotesInAffectedCells = (row: number, col: number, num: number) => {
+    const newNotes = notes.map((r) => r.map((c) => [...c]));
+
+    // Clear from row
+    for (let c = 0; c < 9; c++) {
+      newNotes[row][c] = newNotes[row][c].filter((n) => n !== num);
+    }
+
+    // Clear from column
+    for (let r = 0; r < 9; r++) {
+      newNotes[r][col] = newNotes[r][col].filter((n) => n !== num);
+    }
+
+    // Clear from 3x3 box
+    const boxRow = Math.floor(row / 3) * 3;
+    const boxCol = Math.floor(col / 3) * 3;
+    for (let r = boxRow; r < boxRow + 3; r++) {
+      for (let c = boxCol; c < boxCol + 3; c++) {
+        newNotes[r][c] = newNotes[r][c].filter((n) => n !== num);
+      }
+    }
+
+    return newNotes;
+  };
+
+  const checkCompletion = (currentBoard: Board) => {
+    // Check if board is fully filled
+    const isFull = currentBoard.every((row) =>
+      row.every((cell) => cell !== BLANK),
+    );
+
+    if (!isFull) return;
+
+    // Check if solution is correct
+    if (solutionBoard) {
+      const isCorrect = currentBoard.every((row, rIdx) =>
+        row.every((cell, cIdx) => cell === solutionBoard[rIdx][cIdx]),
+      );
+
+      if (isCorrect) {
+        setStatus("solved");
+        setShowCompletionModal(true);
+      }
+    } else {
+      // No solution board, just check if valid
+      const solution = solveSudoku(currentBoard);
+      if (solution) {
+        setStatus("solved");
+        setShowCompletionModal(true);
+      }
+    }
+  };
+
+  const handleCellClick = (row: number, col: number) => {
+    // Don't select initial cells
     if (initialBoard[row][col] !== BLANK && initialBoard[row][col] !== null)
       return;
 
-    const num = value === "" ? null : parseInt(value, 10);
-
-    if (value !== "" && (isNaN(num as number) || num! < 1 || num! > 9)) return;
-
-    const newBoard = board.map((r, rIdx) =>
-      rIdx === row
-        ? r.map((c, cIdx) => (cIdx === col ? (num as number | null) : c))
-        : r,
-    );
-    setBoard(newBoard);
-
-    // Clear notes for this cell
-    const newNotes = [...notes];
-    newNotes[row] = [...newNotes[row]];
-    newNotes[row][col] = [];
-    setNotes(newNotes);
-
-    // Clear validation for this cell
-    const newValidation = [...validation];
-    newValidation[row] = [...newValidation[row]];
-    newValidation[row][col] = null;
-    setValidation(newValidation);
-
-    // Clear hint if we touched the hint cell or any cell (to keep state fresh)
-    setHint(null);
+    setSelectedCell({ row, col });
+    setShowNumberPad(true);
   };
+
+  const handleNumberSelect = (num: number | null) => {
+    if (!selectedCell) return;
+
+    const { row, col } = selectedCell;
+
+    if (noteMode && num !== null) {
+      // Toggle note
+      const cellNotes = notes[row][col];
+      const newNotes = [...notes];
+      newNotes[row] = [...newNotes[row]];
+
+      if (cellNotes.includes(num)) {
+        newNotes[row][col] = cellNotes.filter((n) => n !== num);
+      } else {
+        newNotes[row][col] = [...cellNotes, num].sort();
+      }
+      setNotes(newNotes);
+    } else {
+      // Fill number
+      const newBoard = board.map((r, rIdx) =>
+        rIdx === row ? r.map((c, cIdx) => (cIdx === col ? num : c)) : r,
+      );
+      setBoard(newBoard);
+
+      if (num !== null) {
+        // Clear notes in affected cells
+        const newNotes = clearNotesInAffectedCells(row, col, num);
+        setNotes(newNotes);
+      }
+
+      // Clear notes for this cell
+      const newNotes = [...notes];
+      newNotes[row] = [...newNotes[row]];
+      newNotes[row][col] = [];
+      setNotes(newNotes);
+
+      // Clear validation for this cell
+      const newValidation = [...validation];
+      newValidation[row] = [...newValidation[row]];
+      newValidation[row][col] = null;
+      setValidation(newValidation);
+
+      setHint(null);
+
+      // Check completion
+      checkCompletion(newBoard);
+    }
+  };
+
+  // Calculate number counts
+  const numberCounts = React.useMemo(() => {
+    const counts: Record<number, number> = {};
+    for (let n = 1; n <= 9; n++) {
+      counts[n] = 0;
+    }
+    board.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell !== BLANK) {
+          counts[cell] = (counts[cell] || 0) + 1;
+        }
+      });
+    });
+    return counts;
+  }, [board]);
 
   // Initialize on mount
   React.useEffect(() => {
@@ -187,7 +291,42 @@ export function SudokuBoard() {
 
   return (
     <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 p-4 w-full max-w-7xl mx-auto">
-      {/* Sidebar / Controls (Left on Desktop, Top on Mobile) */}
+      {/* Completion Modal */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white border-4 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full">
+            <h2 className="text-4xl font-bold text-center mb-4">
+              🎉 Congratulations! 🎉
+            </h2>
+            <p className="text-center text-lg mb-6">
+              You solved the {selectedDifficulty} puzzle!
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  setShowCompletionModal(false);
+                  handleNewGame();
+                }}
+                variant="default"
+                size="lg"
+                className="w-full"
+              >
+                New {selectedDifficulty} Game
+              </Button>
+              <Button
+                onClick={() => setShowCompletionModal(false)}
+                variant="neutral"
+                size="lg"
+                className="w-full"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar / Controls */}
       <div className="flex flex-col items-center lg:items-start gap-8 w-full lg:w-80 shrink-0 order-2 lg:order-1">
         <div className="flex flex-col items-center lg:items-start gap-2">
           <h1 className="text-4xl font-heading uppercase tracking-tighter text-center lg:text-left">
@@ -214,6 +353,18 @@ export function SudokuBoard() {
                 </Button>
               ))}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-bold">Mode</h2>
+            <Button
+              onClick={() => setNoteMode(!noteMode)}
+              variant={noteMode ? "default" : "neutral"}
+              size="lg"
+              className="w-full"
+            >
+              {noteMode ? "📝 Note Mode ON" : "✏️ Fill Mode"}
+            </Button>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -295,6 +446,13 @@ export function SudokuBoard() {
                 const cellValidation = validation[rowIndex][colIndex];
                 const isHintCell =
                   hint?.row === rowIndex && hint?.col === colIndex;
+                const isSelected =
+                  selectedCell?.row === rowIndex &&
+                  selectedCell?.col === colIndex;
+                const isHighlighted =
+                  selectedCell &&
+                  (selectedCell.row === rowIndex ||
+                    selectedCell.col === colIndex);
 
                 const isRightBorder =
                   (colIndex + 1) % 3 === 0 && colIndex !== 8;
@@ -304,10 +462,15 @@ export function SudokuBoard() {
                 return (
                   <div
                     key={`${rowIndex}-${colIndex}`}
+                    onClick={() => handleCellClick(rowIndex, colIndex)}
                     className={cn(
-                      "relative w-full aspect-square bg-white",
+                      "relative w-full aspect-square bg-white cursor-pointer",
                       isRightBorder && "border-r-4 border-black",
                       isBottomBorder && "border-b-4 border-black",
+                      isHighlighted && !isSelected && "bg-blue-50",
+                      isSelected &&
+                        "bg-yellow-200 ring-4 ring-yellow-400 ring-inset",
+                      !isInitial && "hover:bg-yellow-100",
                     )}
                   >
                     {cell === null && cellNotes.length > 0 && (
@@ -322,22 +485,10 @@ export function SudokuBoard() {
                         ))}
                       </div>
                     )}
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={cell ?? ""}
-                      onChange={(e) =>
-                        handleCellChange(rowIndex, colIndex, e.target.value)
-                      }
-                      disabled={isInitial}
+                    <div
                       className={cn(
-                        "relative z-10 w-full h-full text-center text-xl font-bold bg-transparent border-none focus:outline-hidden focus:bg-yellow-200 transition-colors p-0",
+                        "relative z-10 w-full h-full flex items-center justify-center text-xl sm:text-2xl font-bold transition-colors",
                         isInitial ? "text-black" : "text-blue-600",
-                        !isInitial && "cursor-pointer hover:bg-black/5",
-                        cell === null &&
-                          cellNotes.length > 0 &&
-                          "text-transparent", // Hide cursor/text if needed, but actually we want input visible
                         cellValidation === "correct" &&
                           "bg-green-100 text-green-700",
                         cellValidation === "incorrect" &&
@@ -346,13 +497,54 @@ export function SudokuBoard() {
                           !cell &&
                           "bg-blue-100 ring-inset ring-4 ring-blue-400 animate-pulse",
                       )}
-                    />
+                    >
+                      {cell ?? ""}
+                    </div>
                   </div>
                 );
               }),
             )}
           </div>
         </div>
+
+        {/* Number Pad */}
+        {showNumberPad && selectedCell && (
+          <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold">
+                Cell ({selectedCell.row + 1}, {selectedCell.col + 1})
+              </h3>
+              <Button
+                onClick={() => setShowNumberPad(false)}
+                variant="neutral"
+                size="sm"
+              >
+                Close
+              </Button>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                <Button
+                  key={num}
+                  onClick={() => handleNumberSelect(num)}
+                  variant="neutral"
+                  size="lg"
+                  className="text-xl font-bold aspect-square p-0"
+                >
+                  {num}
+                </Button>
+              ))}
+              <Button
+                onClick={() => handleNumberSelect(null)}
+                variant="reverse"
+                size="lg"
+                className="col-span-5 text-lg font-bold"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
