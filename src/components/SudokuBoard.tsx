@@ -308,6 +308,43 @@ export function SudokuBoard() {
     handleNewGame();
   }, []);
 
+  // Handle keyboard input
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedCell) return;
+
+      // Numbers 1-9
+      if (e.key >= "1" && e.key <= "9") {
+        handleNumberSelect(Number.parseInt(e.key));
+        return;
+      }
+
+      // Backspace or Delete to clear
+      if (e.key === "Backspace" || e.key === "Delete") {
+        handleNumberSelect(null);
+        return;
+      }
+
+      // Arrow keys for navigation
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        const { row, col } = selectedCell;
+        let newRow = row;
+        let newCol = col;
+
+        if (e.key === "ArrowUp") newRow = Math.max(0, row - 1);
+        if (e.key === "ArrowDown") newRow = Math.min(8, row + 1);
+        if (e.key === "ArrowLeft") newCol = Math.max(0, col - 1);
+        if (e.key === "ArrowRight") newCol = Math.min(8, col + 1);
+
+        setSelectedCell({ row: newRow, col: newCol });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedCell, handleNumberSelect]);
+
   return (
     <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 p-4 w-full max-w-7xl mx-auto">
       {/* Completion Modal */}
