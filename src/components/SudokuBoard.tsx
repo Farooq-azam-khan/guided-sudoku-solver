@@ -1,6 +1,22 @@
 import * as React from "react";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   generateSudoku,
   solveSudoku,
@@ -211,10 +227,6 @@ export function SudokuBoard() {
   };
 
   const handleCellClick = (row: number, col: number) => {
-    // Don't select initial cells
-    if (initialBoard[row][col] !== BLANK && initialBoard[row][col] !== null)
-      return;
-
     setSelectedCell({ row, col });
     setShowNumberPad(true);
   };
@@ -223,6 +235,13 @@ export function SudokuBoard() {
     if (!selectedCell) return;
 
     const { row, col } = selectedCell;
+
+    if (initialBoard[row][col] !== BLANK && initialBoard[row][col] !== null) {
+      toast.warning("Cannot Edit", {
+        description: "Initial numbers cannot be changed.",
+      });
+      return;
+    }
 
     if (noteMode && num !== null) {
       // Toggle note
@@ -292,50 +311,45 @@ export function SudokuBoard() {
   return (
     <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-8 p-4 w-full max-w-7xl mx-auto">
       {/* Completion Modal */}
-      {showCompletionModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border-4 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full">
-            <h2 className="text-4xl font-bold text-center mb-4">
+      <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-3xl">
               🎉 Congratulations! 🎉
-            </h2>
-            <p className="text-center text-lg mb-6">
+            </DialogTitle>
+            <DialogDescription className="text-center text-lg">
               You solved the {selectedDifficulty} puzzle!
-            </p>
-            <div className="flex flex-col gap-3">
-              <Button
-                onClick={() => {
-                  setShowCompletionModal(false);
-                  handleNewGame();
-                }}
-                variant="default"
-                size="lg"
-                className="w-full"
-              >
-                New {selectedDifficulty} Game
-              </Button>
-              <Button
-                onClick={() => setShowCompletionModal(false)}
-                variant="neutral"
-                size="lg"
-                className="w-full"
-              >
-                Close
-              </Button>
-            </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              onClick={() => {
+                setShowCompletionModal(false);
+                handleNewGame();
+              }}
+              variant="default"
+              size="lg"
+              className="w-full"
+            >
+              New {selectedDifficulty} Game
+            </Button>
+            <Button
+              onClick={() => setShowCompletionModal(false)}
+              variant="neutral"
+              size="lg"
+              className="w-full"
+            >
+              Close
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Sidebar / Controls */}
       <div className="flex flex-col items-center lg:items-start gap-8 w-full lg:w-80 shrink-0 order-2 lg:order-1">
-        <div className="flex flex-col items-center lg:items-start gap-2">
-          <h1 className="text-4xl font-heading uppercase tracking-tighter text-center lg:text-left">
-            Sudoku
-          </h1>
-          <p className="text-sm text-gray-500 text-center lg:text-left">
-            Select a difficulty and start playing!
-          </p>
-        </div>
+        <h1 className="sr-only text-4xl font-heading uppercase tracking-tighter text-center lg:text-left">
+          Sudoku
+        </h1>
 
         <div className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-2">
@@ -378,56 +392,41 @@ export function SudokuBoard() {
               >
                 New {selectedDifficulty} Game
               </Button>
-              <Button
-                onClick={handleCheck}
-                variant="neutral"
-                size="lg"
-                className="w-full"
-              >
-                Check Puzzle
-              </Button>
-              <Button
-                onClick={handleGetHint}
-                variant="neutral"
-                size="lg"
-                className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 border-blue-300"
-              >
-                Get Hint
-              </Button>
-              <Button
-                onClick={handleFillNotes}
-                variant="neutral"
-                size="lg"
-                className="w-full"
-              >
-                Fill Notes
-              </Button>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  onClick={handleClear}
-                  variant="neutral"
-                  size="lg"
-                  className="w-full"
-                >
-                  Reset
-                </Button>
-                <Button
-                  onClick={handleResetEmpty}
-                  variant="neutral"
-                  size="lg"
-                  className="w-full"
-                >
-                  Clear All
-                </Button>
-              </div>
-              <Button
-                onClick={handleSolve}
-                variant="reverse"
-                size="lg"
-                className="w-full mt-2"
-              >
-                Solve Board
-              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="neutral" size="lg" className="w-full">
+                    Game Actions <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuLabel>Game Assistance</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleCheck}>
+                    Check Puzzle
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleGetHint}>
+                    Get Hint
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleFillNotes}>
+                    Fill Notes
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Board Control</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleClear}>
+                    Reset Current Game
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleResetEmpty}>
+                    Clear Board (Empty)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSolve}
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    Solve Board
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -464,7 +463,8 @@ export function SudokuBoard() {
                     key={`${rowIndex}-${colIndex}`}
                     onClick={() => handleCellClick(rowIndex, colIndex)}
                     className={cn(
-                      "relative w-full aspect-square bg-white cursor-pointer",
+                      "relative w-full aspect-square cursor-pointer",
+                      isInitial ? "bg-gray-100" : "bg-white",
                       isRightBorder && "border-r-4 border-black",
                       isBottomBorder && "border-b-4 border-black",
                       isHighlighted && !isSelected && "bg-blue-50",
