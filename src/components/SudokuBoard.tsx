@@ -173,31 +173,6 @@ export function SudokuBoard() {
     setNotes(newNotes);
   };
 
-  const clearNotesInAffectedCells = (row: number, col: number, num: number) => {
-    const newNotes = notes.map((r) => r.map((c) => [...c]));
-
-    // Clear from row
-    for (let c = 0; c < 9; c++) {
-      newNotes[row][c] = newNotes[row][c].filter((n) => n !== num);
-    }
-
-    // Clear from column
-    for (let r = 0; r < 9; r++) {
-      newNotes[r][col] = newNotes[r][col].filter((n) => n !== num);
-    }
-
-    // Clear from 3x3 box
-    const boxRow = Math.floor(row / 3) * 3;
-    const boxCol = Math.floor(col / 3) * 3;
-    for (let r = boxRow; r < boxRow + 3; r++) {
-      for (let c = boxCol; c < boxCol + 3; c++) {
-        newNotes[r][c] = newNotes[r][c].filter((n) => n !== num);
-      }
-    }
-
-    return newNotes;
-  };
-
   const checkCompletion = (currentBoard: Board) => {
     // Check if board is fully filled
     const isFull = currentBoard.every((row) =>
@@ -262,15 +237,31 @@ export function SudokuBoard() {
       );
       setBoard(newBoard);
 
+      // Start with a deep copy of current notes
+      const newNotes = notes.map((r) => r.map((c) => [...c]));
+
       if (num !== null) {
-        // Clear notes in affected cells
-        const newNotes = clearNotesInAffectedCells(row, col, num);
-        setNotes(newNotes);
+        // Clear from row
+        for (let c = 0; c < 9; c++) {
+          newNotes[row][c] = newNotes[row][c].filter((n) => n !== num);
+        }
+
+        // Clear from column
+        for (let r = 0; r < 9; r++) {
+          newNotes[r][col] = newNotes[r][col].filter((n) => n !== num);
+        }
+
+        // Clear from 3x3 box
+        const boxRow = Math.floor(row / 3) * 3;
+        const boxCol = Math.floor(col / 3) * 3;
+        for (let r = boxRow; r < boxRow + 3; r++) {
+          for (let c = boxCol; c < boxCol + 3; c++) {
+            newNotes[r][c] = newNotes[r][c].filter((n) => n !== num);
+          }
+        }
       }
 
       // Clear notes for this cell
-      const newNotes = [...notes];
-      newNotes[row] = [...newNotes[row]];
       newNotes[row][col] = [];
       setNotes(newNotes);
 
