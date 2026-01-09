@@ -203,7 +203,6 @@ export function SudokuBoard() {
 
   const handleCellClick = (row: number, col: number) => {
     setSelectedCell({ row, col });
-    setShowNumberPad(true);
   };
 
   const handleNumberSelect = (num: number | null) => {
@@ -536,43 +535,37 @@ export function SudokuBoard() {
         </div>
 
         {/* Number Pad */}
-        {showNumberPad && selectedCell && (
-          <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-bold">
-                Cell ({selectedCell.row + 1}, {selectedCell.col + 1})
-              </h3>
-              <Button
-                onClick={() => setShowNumberPad(false)}
-                variant="neutral"
-                size="sm"
-              >
-                Close
-              </Button>
-            </div>
-            <div className="grid grid-cols-5 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+        <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div className="grid grid-cols-5 gap-2">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
+              const isCompleted = numberCounts[num] >= 9;
+              return (
                 <Button
                   key={num}
                   onClick={() => handleNumberSelect(num)}
+                  disabled={!selectedCell || isCompleted}
                   variant="neutral"
                   size="lg"
-                  className="text-xl font-bold aspect-square p-0"
+                  className={cn(
+                    "text-xl font-bold aspect-square p-0",
+                    isCompleted && "opacity-50 cursor-not-allowed bg-gray-200",
+                  )}
                 >
                   {num}
                 </Button>
-              ))}
-              <Button
-                onClick={() => handleNumberSelect(null)}
-                variant="reverse"
-                size="lg"
-                className="col-span-5 text-lg font-bold"
-              >
-                Clear
-              </Button>
-            </div>
+              );
+            })}
+            <Button
+              onClick={() => handleNumberSelect(null)}
+              disabled={!selectedCell}
+              variant="reverse"
+              size="lg"
+              className="col-span-1 text-lg font-bold aspect-square p-0"
+            >
+              ⌫
+            </Button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
